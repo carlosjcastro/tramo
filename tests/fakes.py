@@ -1,10 +1,38 @@
-import numpy as np
+class RoutedLLM:
+    model = "fake:model"
+
+    def __init__(self, routes: dict) -> None:
+        self._routes = {schema: list(outputs) for schema, outputs in routes.items()}
+        self.prompts: list[str] = []
+
+    def ask(self, system, user, schema, check=None):
+        self.prompts.append(user)
+        output = self._routes[schema].pop(0)
+        if isinstance(output, Exception):
+            raise output
+        if check:
+            check(output)
+        return output
+
+    def is_ready(self) -> bool:
+        return True
 
 
-class KeywordEmbedder:
-    def __init__(self, vocabulary: list[str]) -> None:
-        self._vocabulary = vocabulary
+class FakeChatClient:
+    def __init__(self, *replies) -> None:
+        self._replies = list(replies)
+        self.requests: list[dict] = []
 
-    def embed(self, texts: list[str]) -> np.ndarray:
-        vectors = np.array([[float(word in text.lower()) for word in self._vocabulary] for text in texts]) + 1e-6
-        return vectors / np.linalg.norm(vectors, axis=1, keepdims=True)
+    def chat(self, **request):
+        self.requests.append(request)
+        reply = self._replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return type("Response", (), {"message": type("Message", (), {"content": reply})()})()
+
+    def list(self):
+        reply = self._replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        models = [type("Item", (), {"model": name})() for name in reply]
+        return type("Listing", (), {"models": models})()
