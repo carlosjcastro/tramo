@@ -5,7 +5,7 @@ from app.policy import EquivalencePolicy
 
 
 def build(statuses: list[Status]) -> list[TopicMatch]:
-    return [TopicMatch(target=Topic(index=i, text=f"tema {i}"), source=None, score=0.0, status=s) for i, s in enumerate(statuses)]
+    return [TopicMatch(target=Topic(index=i, text=f"tema {i}"), status=s) for i, s in enumerate(statuses)]
 
 
 @pytest.mark.parametrize(
@@ -19,3 +19,9 @@ def build(statuses: list[Status]) -> list[TopicMatch]:
 )
 def test_applies_the_fifty_percent_rule(statuses, verdict):
     assert EquivalencePolicy(0.5).evaluate(build(statuses)).verdict is verdict
+
+
+def test_lists_every_topic_that_is_not_fully_covered():
+    report = EquivalencePolicy(0.5).evaluate(build([Status.covered, Status.partial, Status.missing]))
+    assert report.pending_topics == ["tema 1", "tema 2"]
+    assert report.coverage == 0.5
