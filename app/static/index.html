@@ -3,40 +3,216 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Tramo compara programas de materias por significado y redacta un borrador de informe de equivalencia para el docente.">
+<meta name="theme-color" content="#1b1d1f">
 <title>Tramo</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
-<h1>Tramo</h1>
-<p>Compará el programa de una materia aprobada con el de la materia destino y obtené un borrador de informe de equivalencia para el docente.</p>
+<a class="skip" href="#programas">Saltar al contenido</a>
+
+<header class="top">
+<div class="wrap top-bar">
+<a class="brand" href="#inicio" aria-label="Tramo, inicio">
+<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M4 23 C 11 23, 11 9, 18 9 S 25 9, 28 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/><rect x="2" y="21" width="5" height="5" fill="currentColor"/><rect x="25" y="6" width="5" height="5" fill="currentColor"/></svg>
+<span>Tramo</span>
+</a>
+<nav class="top-nav" aria-label="Secciones">
+<a href="#lectura">Cómo se lee</a>
+<a href="#programas">Programas</a>
+<a href="#informe">Informe</a>
+</nav>
+</div>
 </header>
+
 <main>
-<form id="form">
-<label>Programa de origen, materia aprobada
-<textarea id="source" required rows="9"></textarea>
-</label>
-<label>Programa de destino, materia a reconocer
-<textarea id="target" required rows="9"></textarea>
-</label>
+<section class="hero" id="inicio">
+<div class="wrap hero-grid">
+<p class="kicker">Equivalencias entre materias</p>
+<h1 aria-label="Del programa al informe de equivalencia.">
+<span class="line"><span>Del programa</span></span>
+<span class="line"><span>al informe de</span></span>
+<span class="line"><span>equivalencia.</span></span>
+</h1>
+<p class="lead">Cargá el programa de la materia aprobada y el de la materia a reconocer. Una IA que corre en tu equipo los lee, compara tema por tema y razona cada decisión con evidencia. La facultad decide.</p>
+<div class="hero-actions">
+<a class="btn" href="#programas">Comenzar <span aria-hidden="true">→</span></a>
+<a class="link" href="#lectura">Cómo se lee el informe</a>
+</div>
+</div>
+<div class="road" aria-hidden="true">
+<span class="road-end road-start">Origen</span>
+<div class="road-lane"></div>
+<span class="road-sign">50<small>%</small></span>
+<span class="road-end road-finish">Destino</span>
+</div>
+</section>
+
+<section class="section" id="lectura" aria-labelledby="lecturaTitulo">
+<div class="wrap">
+<header class="section-head">
+<p class="section-no">Antes de empezar</p>
+<h2 id="lecturaTitulo">Cómo se lee el informe</h2>
+<p class="section-lead">Cada tema del programa de destino recibe una marca, como las líneas de una ruta.</p>
+</header>
+<dl class="marks">
+<div class="marks-item cubierto">
+<dt><span class="swatch" aria-hidden="true"></span>Línea continua. Cubierto</dt>
+<dd>El tema aparece en el programa de origen con un alcance equivalente.</dd>
+</div>
+<div class="marks-item parcial">
+<dt><span class="swatch" aria-hidden="true"></span>Línea discontinua. Parcial</dt>
+<dd>Hay un tema relacionado, pero con menos alcance. Necesita el criterio del docente.</dd>
+</div>
+<div class="marks-item sin_evidencia">
+<dt><span class="swatch" aria-hidden="true"></span>Línea punteada. Sin evidencia</dt>
+<dd>No se encontró un tema equivalente en el programa de origen.</dd>
+</div>
+</dl>
+<p class="rule-text"><strong>La cobertura</strong> suma 1 por cada tema cubierto y 0,5 por cada tema parcial. Si supera el 50% del programa de destino, se propone una equivalencia parcial (art. 87) y el docente indica los temas a rendir (art. 88). Si no queda ningún tema pendiente, la equivalencia es total.</p>
+</div>
+</section>
+
+<section class="section section-ruled" id="programas" aria-labelledby="programasTitulo">
+<div class="wrap">
+<header class="section-head">
+<p class="section-no">01</p>
+<h2 id="programasTitulo">Cargá los dos programas</h2>
+<p class="section-lead">Subí un PDF o un Word, o pegá el texto. Después de subir un archivo, revisá el texto extraído: podés corregirlo antes de analizar.</p>
+</header>
+
+<div id="notices" class="notices" aria-live="polite"></div>
+
+<form id="form" class="workspace" novalidate>
+<div class="field" id="fieldSource">
+<div class="field-head">
+<label for="source">Programa de origen</label>
+<span class="hint">Materia aprobada</span>
+</div>
+<textarea id="source" name="source" rows="13" placeholder="Pegá los temas del programa, uno por línea o separados por punto y coma" aria-describedby="sourceError"></textarea>
+<div class="field-tools">
+<button type="button" class="link" data-pick>Subir PDF o Word</button>
+<span class="file-name" data-file hidden></span>
+<button type="button" class="link quiet" data-remove hidden>Quitar</button>
+<span class="count" data-count>0</span>
+<input type="file" data-input accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+</div>
+<p class="field-error" id="sourceError" data-error role="alert" hidden></p>
+<p class="drop-hint" aria-hidden="true">Soltá el archivo para cargarlo</p>
+</div>
+
+<div class="field" id="fieldTarget">
+<div class="field-head">
+<label for="target">Programa de destino</label>
+<span class="hint">Materia a reconocer</span>
+</div>
+<textarea id="target" name="target" rows="13" placeholder="Pegá los contenidos mínimos o el programa analítico" aria-describedby="targetError"></textarea>
+<div class="field-tools">
+<button type="button" class="link" data-pick>Subir PDF o Word</button>
+<span class="file-name" data-file hidden></span>
+<button type="button" class="link quiet" data-remove hidden>Quitar</button>
+<span class="count" data-count>0</span>
+<input type="file" data-input accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+</div>
+<p class="field-error" id="targetError" data-error role="alert" hidden></p>
+<p class="drop-hint" aria-hidden="true">Soltá el archivo para cargarlo</p>
+</div>
+
 <div class="actions">
-<button type="submit" id="submit">Analizar</button>
-<button type="button" id="example" class="secondary">Cargar ejemplo</button>
+<button type="submit" class="btn" id="submit">Generar informe <span aria-hidden="true">→</span></button>
+<button type="button" class="link quiet" id="example">Usar un ejemplo</button>
+<button type="button" class="link quiet" id="clear">Limpiar todo</button>
 </div>
+<p class="engine" id="engine"></p>
 </form>
-<p id="status" role="status" aria-live="polite"></p>
-<section id="result" hidden>
-<div class="summary">
-<div><span id="coverage"></span><small>cobertura estimada</small></div>
-<p id="verdict"></p>
 </div>
-<table>
-<thead><tr><th>Tema de destino</th><th>Estado</th><th>Fragmento de origen</th><th>Similitud</th></tr></thead>
-<tbody id="rows"></tbody>
-</table>
-<p class="note">Borrador asistido por IA. El docente firma el informe y el Consejo Directivo resuelve.</p>
+</section>
+
+<section class="section section-ruled report" id="informe" aria-labelledby="informeTitulo" hidden>
+<div class="wrap">
+<header class="section-head">
+<p class="section-no">02</p>
+<h2 id="informeTitulo" tabindex="-1">Informe de equivalencia</h2>
+<p class="section-lead" id="informeMeta"></p>
+</header>
+
+<div class="meter">
+<p class="meter-figure"><span id="coverage">0</span><small>%</small><span class="sr-only"> de cobertura estimada</span></p>
+<div class="meter-body">
+<div class="meter-road" id="meterRoad" role="img">
+<div class="meter-base"></div>
+<div class="meter-fill" id="meterFill"></div>
+<div class="meter-mark"><span>50 % art. 87</span></div>
+</div>
+<div class="verdict" id="verdict" data-tone>
+<p class="verdict-title" id="verdictTitle"></p>
+<p class="verdict-detail" id="verdictDetail"></p>
+</div>
+</div>
+</div>
+
+<section class="advice" id="advice" aria-labelledby="adviceTitle" hidden>
+<h3 id="adviceTitle">Recomendación de la IA</h3>
+<p id="adviceText"></p>
+<p class="advice-note">La IA propone y justifica. El docente decide y el Consejo Directivo resuelve.</p>
+</section>
+<p class="adjusted" id="adjusted" role="status" hidden>Cambiaste el estado de algún tema. Los números se recalcularon y la recomendación de la IA ya no aplica a esta versión.</p>
+
+<dl class="tally" id="tally"></dl>
+
+<section class="pending" id="pending" aria-labelledby="pendingTitle" hidden>
+<h3 id="pendingTitle"></h3>
+<ol id="pendingList"></ol>
+</section>
+
+<div class="detail-head">
+<h3>Detalle por tema</h3>
+<p class="detail-hint">Podés cambiar el estado de cualquier tema. Los números se recalculan.</p>
+<div class="filters" id="filters" role="group" aria-label="Filtrar por estado"></div>
+</div>
+<ol class="topics" id="topics"></ol>
+
+<div class="report-foot">
+<p>Este informe es un borrador de apoyo. El docente lo firma y el Consejo Directivo resuelve.</p>
+<div class="report-actions">
+<button type="button" class="link" id="copy">Copiar informe</button>
+<button type="button" class="link" id="print">Imprimir o guardar en PDF</button>
+</div>
+</div>
+</div>
 </section>
 </main>
+
+<footer class="foot">
+<div class="wrap foot-grid">
+<div class="foot-brand">
+<a class="brand" href="#inicio" aria-label="Tramo, volver al inicio">
+<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M4 23 C 11 23, 11 9, 18 9 S 25 9, 28 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/><rect x="2" y="21" width="5" height="5" fill="currentColor"/><rect x="25" y="6" width="5" height="5" fill="currentColor"/></svg>
+<span>Tramo</span>
+</a>
+<p>Compara programas por significado y redacta un borrador de informe de equivalencia. Software libre que corre con modelos abiertos.</p>
+</div>
+<nav class="foot-col" aria-label="Proyecto">
+<h2>Proyecto</h2>
+<ul>
+<li><a href="https://github.com/carlosjcastro/tramo" rel="noopener">Código fuente</a></li>
+<li><a href="https://github.com/carlosjcastro/tramo/issues" rel="noopener">Reportar un problema</a></li>
+<li><a href="https://github.com/carlosjcastro/tramo/blob/main/LICENSE" rel="noopener">Licencia MIT</a></li>
+</ul>
+</nav>
+<div class="foot-col">
+<h2>Uso responsable</h2>
+<p>Tramo no decide. Propone y cita evidencia. La equivalencia la resuelve el Consejo Directivo, según el reglamento de cada facultad. La IA corre en este equipo con Ollama y la aplicación no guarda los documentos que se cargan.</p>
+</div>
+</div>
+<div class="wrap foot-legal">
+<p>© 2026 Carlos José Castro Galante. Software libre bajo licencia MIT.</p>
+<p>Hecho en San Juan, Argentina.</p>
+</div>
+</footer>
+
+<noscript><p class="noscript">Tramo necesita JavaScript para funcionar.</p></noscript>
 <script type="module" src="app.js"></script>
 </body>
 </html>
