@@ -74,3 +74,15 @@ def test_checks_whether_the_model_is_installed(listing, ready):
 def test_accepts_the_implicit_latest_tag():
     client = FakeChatClient(["gemma4:latest"])
     assert OllamaLLM(client, "gemma4", 8192).is_ready() is True
+
+
+def test_omits_the_think_option_by_default():
+    model, client = llm('{"value": 1}')
+    model.ask("s", "u", Answer)
+    assert "think" not in client.requests[0]
+
+
+def test_forwards_the_think_option_when_configured():
+    client = FakeChatClient('{"value": 1}')
+    OllamaLLM(client, "fake:model", 4096, think=False).ask("s", "u", Answer)
+    assert client.requests[0]["think"] is False

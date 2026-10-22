@@ -25,11 +25,12 @@ class StructuredLLM(Protocol):
 
 
 class OllamaLLM:
-    def __init__(self, client: Client, model: str, num_ctx: int, attempts: int = 2) -> None:
+    def __init__(self, client: Client, model: str, num_ctx: int, attempts: int = 2, think: bool | None = None) -> None:
         self.model = model
         self._client = client
         self._num_ctx = num_ctx
         self._attempts = attempts
+        self._extra = {} if think is None else {"think": think}
 
     def ask(self, system: str, user: str, schema: type[T], check: Callable[[T], None] | None = None) -> T:
         for _ in range(self._attempts):
@@ -56,6 +57,7 @@ class OllamaLLM:
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
             format=schema.model_json_schema(),
             options={"temperature": 0, "num_ctx": self._num_ctx},
+            **self._extra,
         )
         result = schema.model_validate_json(response.message.content)
         if check:

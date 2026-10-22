@@ -35,7 +35,7 @@ def get_limiters() -> Limiters:
 @lru_cache
 def get_llm() -> StructuredLLM:
     client = Client(host=settings.ollama_host, timeout=settings.request_timeout)
-    return OllamaLLM(client, settings.model, settings.num_ctx)
+    return OllamaLLM(client, settings.model, settings.num_ctx, think=settings.think)
 
 
 @lru_cache
