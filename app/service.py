@@ -1,16 +1,34 @@
-from app.domain import Report
-from app.matching import TopicMatcher
+from app.advisor import Advisor
+from app.assessment import TopicAssessor
+from app.domain import Report, TopicMatch
 from app.policy import EquivalencePolicy
-from app.syllabus import split_topics
+from app.topics import TopicExtractor
 
 
 class EquivalenceService:
-    def __init__(self, matcher: TopicMatcher, policy: EquivalencePolicy) -> None:
-        self._matcher = matcher
+    def __init__(
+        self,
+        extractor: TopicExtractor,
+        assessor: TopicAssessor,
+        advisor: Advisor,
+        policy: EquivalencePolicy,
+        model: str,
+    ) -> None:
+        self._extractor = extractor
+        self._assessor = assessor
+        self._advisor = advisor
         self._policy = policy
+        self._model = model
 
     def analyze(self, source_text: str, target_text: str) -> Report:
-        source, target = split_topics(source_text), split_topics(target_text)
-        if not source or not target:
-            raise ValueError("Cada programa debe tener al menos un tema")
-        return self._policy.evaluate(self._matcher.match(source, target))
+        sources = self._extractor.extract(source_text)
+        targets = self._extractor.extract(target_text)
+        if not sources or not targets:
+            raise ValueError(
+                "No se detectaron temas en uno de los programas. Revisá que el texto tenga contenidos separados por líneas o por punto y coma."
+            )
+        report = self._policy.evaluate(self._assessor.assess(sources, targets))
+        return report.model_copy(update={"recommendation": self._advisor.recommend(report), "model": self._model})
+
+    def recompute(self, matches: list[TopicMatch]) -> Report:
+        return self._policy.evaluate(matches).model_copy(update={"model": self._model})
