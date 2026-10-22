@@ -1,9 +1,11 @@
+import json
 import logging
 from pathlib import Path
+from typing import Iterator
 
 from fastapi import Depends, FastAPI, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -12,6 +14,7 @@ from app.clientip import client_ip
 from app.config import settings
 from app.container import Limiters, get_limiters, get_llm, get_reader, get_service
 from app.domain import Report, TopicMatch
+from app.domain import Progress
 from app.errors import AppError
 from app.extraction import DocumentReader
 from app.guards import BodyLimitMiddleware, SecurityHeadersMiddleware
@@ -75,6 +78,32 @@ class Extracted(BaseModel):
 
 def error_response(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse(status_code=status, content={"detail": {"code": code, "message": message}})
+
+
+def encode(event: dict) -> str:
+    return json.dumps(event, ensure_ascii=False) + "\n"
+
+
+def failure_event(code: str, message: str) -> str:
+    return encode({"type": "error", "code": code, "message": message})
+
+
+def stream_events(service: EquivalenceService, request: AnalyzeRequest, gate, token: float) -> Iterator[str]:
+    try:
+        for event in service.analyze_events(request.source, request.target):
+            if isinstance(event, Progress):
+                yield encode({"type": "progress", **event.model_dump()})
+            else:
+                yield encode({"type": "report", "report": event.model_dump(mode="json")})
+    except ValueError as error:
+        yield failure_event("no_topics", str(error))
+    except AppError as error:
+        yield failure_event(error.code, error.message)
+    except Exception as error:
+        logger.exception("Unexpected failure", exc_info=error)
+        yield failure_event("engine_error", "Ocurrió un error inesperado. Intentá de nuevo en unos minutos.")
+    finally:
+        gate.release(token)
 
 
 def limiter_for(name: str):
@@ -142,11 +171,25 @@ def analyze(
     service: EquivalenceService = Depends(get_service),
     limiters: Limiters = Depends(get_limiters),
 ) -> Report:
-    with limiters.gate:
+    with limiters.gate.hold():
         try:
             return service.analyze(request.source, request.target)
         except ValueError as error:
             raise HTTPException(status_code=422, detail={"code": "no_topics", "message": str(error)}) from error
+
+
+@app.post("/api/analyze/stream", dependencies=[Depends(limiter_for("analyze"))])
+def analyze_stream(
+    request: AnalyzeRequest,
+    service: EquivalenceService = Depends(get_service),
+    limiters: Limiters = Depends(get_limiters),
+) -> StreamingResponse:
+    token = limiters.gate.acquire()
+    return StreamingResponse(
+        stream_events(service, request, limiters.gate, token),
+        media_type="application/x-ndjson",
+        headers={"X-Accel-Buffering": "no"},
+    )
 
 
 @app.post("/api/recompute", response_model=Report, dependencies=[Depends(general_limit)])
