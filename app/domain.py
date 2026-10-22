@@ -28,6 +28,14 @@ class TopicMatch(BaseModel):
     overridden: bool = False
 
 
+class Progress(BaseModel):
+    done: int
+    total: int
+    stage: str
+    current: int = 0
+    count: int = 0
+
+
 class Report(BaseModel):
     matches: list[TopicMatch]
     coverage: float = Field(ge=0, le=1)

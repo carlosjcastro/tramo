@@ -1,4 +1,6 @@
+import math
 import re
+from typing import Iterator
 
 from pydantic import BaseModel
 
@@ -74,11 +76,15 @@ class TopicAssessor:
         self._llm = llm
         self._batch_size = batch_size
 
-    def assess(self, sources: list[Topic], targets: list[Topic]) -> list[TopicMatch]:
-        matches: list[TopicMatch] = []
+    def batch_count(self, targets: int) -> int:
+        return math.ceil(targets / self._batch_size)
+
+    def assess_batches(self, sources: list[Topic], targets: list[Topic]) -> Iterator[list[TopicMatch]]:
         for start in range(0, len(targets), self._batch_size):
-            matches += self._assess_batch(sources, targets[start : start + self._batch_size])
-        return matches
+            yield self._assess_batch(sources, targets[start : start + self._batch_size])
+
+    def assess(self, sources: list[Topic], targets: list[Topic]) -> list[TopicMatch]:
+        return [match for batch in self.assess_batches(sources, targets) for match in batch]
 
     def _assess_batch(self, sources: list[Topic], targets: list[Topic]) -> list[TopicMatch]:
         prompt = f"<origen>\n{numbered(sources)}\n</origen>\n\n<destino>\n{numbered(targets)}\n</destino>"
