@@ -1,4 +1,4 @@
-from app.advisor import Advisor, Recommendation, build_prompt
+from app.advisor import Advisor, Recommendation, build_prompt, keep_verified_sentences
 from app.domain import Status, Topic, TopicMatch, Verdict
 from app.policy import EquivalencePolicy
 from tests.fakes import RoutedLLM
@@ -24,3 +24,12 @@ def test_returns_the_trimmed_recommendation():
     advisor = Advisor(RoutedLLM({Recommendation: [Recommendation(recommendation="  Revisar DOM primero.  ")]}))
     assert advisor.recommend(report()) == "Revisar DOM primero."
     assert report().verdict is Verdict.insufficient
+
+
+def test_drops_sentences_with_numbers_the_code_did_not_calculate():
+    advisor = Advisor(RoutedLLM({Recommendation: [Recommendation(recommendation="La cobertura es 50%. Faltan 18 temas web. Revisar DOM primero.")]}))
+    assert advisor.recommend(report()) == "La cobertura es 50%. Revisar DOM primero."
+
+
+def test_returns_nothing_when_every_sentence_has_an_unverified_number():
+    assert keep_verified_sentences("Faltan 18 temas.", {50}) is None
