@@ -1,27 +1,35 @@
 from functools import lru_cache
 
-from app.config import Settings, settings
-from app.embedding import Embedder, FastEmbedder, OllamaEmbedder
-from app.matching import TopicMatcher
+from ollama import Client
+
+from app.advisor import Advisor
+from app.assessment import TopicAssessor
+from app.config import settings
+from app.extraction import DocumentReader
+from app.llm import OllamaLLM, StructuredLLM
 from app.policy import EquivalencePolicy
 from app.service import EquivalenceService
+from app.topics import TopicExtractor
 
 
-def build_ollama(config: Settings) -> Embedder:
-    from ollama import Client
-
-    return OllamaEmbedder(Client(host=config.ollama_host), config.embedding_model, config.embedding_prefix)
-
-
-def build_fastembed(config: Settings) -> Embedder:
-    return FastEmbedder(config.embedding_model, config.embedding_prefix)
-
-
-EMBEDDER_BUILDERS = {"ollama": build_ollama, "fastembed": build_fastembed}
+@lru_cache
+def get_llm() -> StructuredLLM:
+    client = Client(host=settings.ollama_host, timeout=settings.request_timeout)
+    return OllamaLLM(client, settings.model, settings.num_ctx)
 
 
 @lru_cache
 def get_service() -> EquivalenceService:
-    embedder = EMBEDDER_BUILDERS[settings.embedding_backend](settings)
-    matcher = TopicMatcher(embedder, settings.covered_threshold, settings.partial_threshold)
-    return EquivalenceService(matcher, EquivalencePolicy(settings.partial_rule))
+    llm = get_llm()
+    return EquivalenceService(
+        TopicExtractor(llm),
+        TopicAssessor(llm, settings.batch_size),
+        Advisor(llm),
+        EquivalencePolicy(settings.partial_rule),
+        llm.model,
+    )
+
+
+@lru_cache
+def get_reader() -> DocumentReader:
+    return DocumentReader(settings.max_file_bytes, settings.max_chars)
