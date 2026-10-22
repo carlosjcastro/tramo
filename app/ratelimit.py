@@ -1,7 +1,8 @@
 import time
 from collections import deque
+from contextlib import contextmanager
 from threading import Lock
-from typing import Callable
+from typing import Callable, Iterator
 
 from app.errors import AppError
 
@@ -45,18 +46,31 @@ class SlidingWindowLimiter:
 
 
 class AnalysisGate:
-    def __init__(self, slots: int) -> None:
+    def __init__(self, slots: int, lease: float = 1800, clock: Callable[[], float] = time.monotonic) -> None:
         self._slots = slots
-        self._active = 0
+        self._lease = lease
+        self._clock = clock
+        self._tokens: list[float] = []
         self._lock = Lock()
 
-    def __enter__(self) -> "AnalysisGate":
+    def acquire(self) -> float:
         with self._lock:
-            if self._active >= self._slots:
+            now = self._clock()
+            self._tokens = [token for token in self._tokens if now - token < self._lease]
+            if len(self._tokens) >= self._slots:
                 raise BusyError()
-            self._active += 1
-        return self
+            self._tokens.append(now)
+            return now
 
-    def __exit__(self, *_) -> None:
+    def release(self, token: float) -> None:
         with self._lock:
-            self._active -= 1
+            if token in self._tokens:
+                self._tokens.remove(token)
+
+    @contextmanager
+    def hold(self) -> Iterator[None]:
+        token = self.acquire()
+        try:
+            yield
+        finally:
+            self.release(token)
