@@ -61,11 +61,21 @@ def test_limiter_counts_each_client_separately_and_recovers_after_the_window():
 
 def test_gate_allows_one_analysis_at_a_time():
     gate = AnalysisGate(1)
-    with gate:
+    with gate.hold():
         with pytest.raises(BusyError):
-            gate.__enter__()
-    with gate:
+            gate.acquire()
+    with gate.hold():
         pass
+
+
+def test_gate_frees_a_slot_that_was_never_released_after_its_lease():
+    clock = FakeClock()
+    gate = AnalysisGate(1, lease=100, clock=clock)
+    gate.acquire()
+    with pytest.raises(BusyError):
+        gate.acquire()
+    clock.now = 101
+    gate.release(gate.acquire())
 
 
 def test_analyze_is_limited_per_client_with_retry_after():
@@ -87,7 +97,7 @@ def test_busy_gate_returns_a_clear_error():
     limiters = Limiters(SlidingWindowLimiter(10, 60), SlidingWindowLimiter(10, 60), SlidingWindowLimiter(10, 60), gate)
     app.dependency_overrides[get_limiters] = lambda: limiters
     try:
-        with gate:
+        with gate.hold():
             response = client.post("/api/analyze", json={"source": "Bucles", "target": "Bucles"})
         assert response.status_code == 429 and response.json()["detail"]["code"] == "busy"
     finally:

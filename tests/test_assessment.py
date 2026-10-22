@@ -61,3 +61,19 @@ def test_removes_number_references_and_limits_the_cited_sources():
     matches, _ = assess([batch(item)], sources, [Topic(index=0, text="Bucles")])
     assert matches[0].reason == "Cubre la iteración y los bucles."
     assert [source.text for source in matches[0].sources] == ["Tema 0", "Tema 1", "Tema 2", "Tema 3", "Tema 4"]
+
+
+def test_counts_and_yields_the_batches_in_order():
+    sources = topics("A")
+    targets = topics("B", "C", "D")
+    llm = RoutedLLM(
+        {
+            AssessmentBatch: [
+                batch(covered(1, [1]), covered(2, [1])),
+                batch(covered(1, [1])),
+            ]
+        }
+    )
+    assessor = TopicAssessor(llm, 2)
+    assert assessor.batch_count(3) == 2
+    assert [len(part) for part in assessor.assess_batches(sources, targets)] == [2, 1]

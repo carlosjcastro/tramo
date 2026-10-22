@@ -2,7 +2,7 @@ import pytest
 
 from app.advisor import Advisor, Recommendation
 from app.assessment import Assessment, AssessmentBatch, TopicAssessor
-from app.domain import Status, Verdict
+from app.domain import Progress, Report, Status, Verdict
 from app.llm import INVALID_OUTPUT, LLMError
 from app.policy import EquivalencePolicy
 from app.service import EquivalenceService
@@ -59,3 +59,36 @@ def test_warns_when_the_topics_came_from_the_rule_based_fallback():
 
 def test_has_no_warning_when_the_model_extracted_the_topics():
     assert build(routes()).analyze("origen", "destino").warnings == []
+
+
+def events_of(service):
+    return list(service.analyze_events("origen", "destino"))
+
+
+def test_emits_ordered_progress_and_ends_with_the_report():
+    events = events_of(build(routes()))
+    progress = [event for event in events if isinstance(event, Progress)]
+    assert [event.stage for event in progress] == ["extracting_origin", "extracting_target", "assessing", "advising", "finished"]
+    assert isinstance(events[-1], Report) and events[-1].coverage == 0.75
+
+
+def test_progress_never_goes_backwards_and_finishes_complete():
+    progress = [event for event in events_of(build(routes())) if isinstance(event, Progress)]
+    ratios = [event.done / event.total for event in progress]
+    assert ratios == sorted(ratios) and ratios[0] == 0 and ratios[-1] == 1
+
+
+def test_reports_each_assessment_batch():
+    llm = RoutedLLM(
+        {
+            TopicList: [TopicList(topics=["Bucles"]), TopicList(topics=["Arreglos", "Registros", "Objetos"])],
+            AssessmentBatch: [
+                AssessmentBatch(assessments=[Assessment(target_number=n, status=Status.missing, reason="x") for n in (1, 2)]),
+                AssessmentBatch(assessments=[Assessment(target_number=1, status=Status.missing, reason="x")]),
+            ],
+            Recommendation: [Recommendation(recommendation="Revisar.")],
+        }
+    )
+    service = EquivalenceService(TopicExtractor(llm), TopicAssessor(llm, 2), Advisor(llm), EquivalencePolicy(0.5), llm.model)
+    batches = [(event.current, event.count) for event in service.analyze_events("o", "d") if isinstance(event, Progress) and event.stage == "assessing"]
+    assert batches == [(1, 2), (2, 2)]

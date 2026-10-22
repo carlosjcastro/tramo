@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -82,3 +84,37 @@ def test_rejects_unsupported_and_corrupt_files_with_a_message():
 
 def test_serves_the_interface():
     assert "Tramo" in client.get("/").text
+
+
+def stream(source="Bucles", target="Bucles"):
+    response = client.post("/api/analyze/stream", json={"source": source, "target": target})
+    return response, [json.loads(line) for line in response.text.splitlines() if line]
+
+
+def test_stream_sends_progress_and_then_the_report():
+    response, events = stream()
+    assert response.headers["content-type"].startswith("application/x-ndjson")
+    assert [event["type"] for event in events[:-1]] == ["progress"] * (len(events) - 1)
+    assert events[0]["stage"] == "extracting_origin" and events[-2]["stage"] == "finished"
+    assert events[-1]["type"] == "report" and events[-1]["report"]["coverage"] == 1.0
+
+
+def test_stream_reports_a_problem_inside_the_stream():
+    llm = RoutedLLM({TopicList: [TopicList(topics=["Bucles"]), TopicList(topics=[])]})
+    empty = EquivalenceService(TopicExtractor(llm), TopicAssessor(llm, 12), Advisor(llm), EquivalencePolicy(0.5), llm.model)
+    app.dependency_overrides[get_service] = lambda: empty
+    try:
+        _, events = stream()
+    finally:
+        app.dependency_overrides[get_service] = fake_service
+    assert events[-1]["type"] == "error" and events[-1]["code"] == "no_topics"
+
+
+def test_stream_releases_the_slot_so_the_next_analysis_can_run():
+    stream()
+    assert stream()[1][-1]["type"] == "report"
+
+
+def test_stream_rejects_invalid_input_before_streaming():
+    response, _ = stream(source="")
+    assert response.status_code == 422
