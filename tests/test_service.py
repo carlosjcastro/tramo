@@ -3,6 +3,7 @@ import pytest
 from app.advisor import Advisor, Recommendation
 from app.assessment import Assessment, AssessmentBatch, TopicAssessor
 from app.domain import Status, Verdict
+from app.llm import INVALID_OUTPUT, LLMError
 from app.policy import EquivalencePolicy
 from app.service import EquivalenceService
 from app.topics import TopicExtractor, TopicList
@@ -47,3 +48,14 @@ def test_fails_clearly_when_a_program_has_no_topics():
     service = build({TopicList: [TopicList(topics=["Bucles"]), TopicList(topics=["x"])]})
     with pytest.raises(ValueError):
         service.analyze("origen", "..")
+
+
+def test_warns_when_the_topics_came_from_the_rule_based_fallback():
+    fallback = routes()
+    fallback[TopicList][0] = LLMError(INVALID_OUTPUT, "x", 502)
+    report = build(fallback).analyze("Bucles. Arreglos.", "destino")
+    assert len(report.warnings) == 1 and "método por reglas" in report.warnings[0]
+
+
+def test_has_no_warning_when_the_model_extracted_the_topics():
+    assert build(routes()).analyze("origen", "destino").warnings == []

@@ -7,15 +7,21 @@ def extract(output, text="Variables y tipos. Bucles."):
     return TopicExtractor(RoutedLLM({TopicList: [output]})).extract(text)
 
 
+def names(extraction):
+    return [topic.text for topic in extraction.topics]
+
+
 def test_uses_the_topics_returned_by_the_model_without_duplicates():
-    topics = extract(TopicList(topics=["Variables", " variables ", "Bucles", "  "]))
-    assert [topic.text for topic in topics] == ["Variables", "Bucles"]
-    assert [topic.index for topic in topics] == [0, 1]
+    extraction = extract(TopicList(topics=["Variables", " variables ", "Bucles", "  "]))
+    assert names(extraction) == ["Variables", "Bucles"]
+    assert [topic.index for topic in extraction.topics] == [0, 1]
+    assert extraction.by_model is True
 
 
 def test_falls_back_to_rule_based_splitting_when_the_output_is_invalid():
-    topics = extract(LLMError(INVALID_OUTPUT, "x", 502))
-    assert [topic.text for topic in topics] == ["Variables y tipos", "Bucles"]
+    extraction = extract(LLMError(INVALID_OUTPUT, "x", 502))
+    assert names(extraction) == ["Variables y tipos", "Bucles"]
+    assert extraction.by_model is False
 
 
 def test_does_not_hide_an_unavailable_model():
