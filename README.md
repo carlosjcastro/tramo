@@ -50,27 +50,27 @@ Open http://localhost:8000. A full analysis can take several minutes depending o
 
 ## Configuration
 
-| Variable | Default |
-| --- | --- |
-| TRAMO_MODEL | gemma4:e4b |
-| OLLAMA_HOST | http://localhost:11434 |
-| TRAMO_NUM_CTX | 12288 |
-| TRAMO_BATCH_SIZE | 12 |
-| TRAMO_REQUEST_TIMEOUT | 600 |
-| TRAMO_PARTIAL_RULE | 0.5 |
-| TRAMO_MAX_CHARS | 20000 |
-| TRAMO_MAX_FILE_BYTES | 5242880 |
-| TRAMO_MAX_JSON_BYTES | 524288 |
-| TRAMO_MAX_PAGES | 100 |
-| TRAMO_MAX_UNZIPPED_BYTES | 31457280 |
-| TRAMO_ALLOWED_HOSTS | localhost,127.0.0.1 |
-| TRAMO_TRUST_PROXY | false |
-| TRAMO_ANALYZE_LIMIT | 3 |
-| TRAMO_ANALYZE_WINDOW | 600 |
-| TRAMO_EXTRACT_LIMIT | 20 |
-| TRAMO_GENERAL_LIMIT | 120 |
-| TRAMO_GENERAL_WINDOW | 60 |
-| TRAMO_MAX_CONCURRENT_ANALYSES | 1 |
+| Variable                      | Default                |
+| ----------------------------- | ---------------------- |
+| TRAMO_MODEL                   | gemma4:e4b             |
+| OLLAMA_HOST                   | http://localhost:11434 |
+| TRAMO_NUM_CTX                 | 12288                  |
+| TRAMO_BATCH_SIZE              | 12                     |
+| TRAMO_REQUEST_TIMEOUT         | 600                    |
+| TRAMO_PARTIAL_RULE            | 0.5                    |
+| TRAMO_MAX_CHARS               | 20000                  |
+| TRAMO_MAX_FILE_BYTES          | 5242880                |
+| TRAMO_MAX_JSON_BYTES          | 524288                 |
+| TRAMO_MAX_PAGES               | 100                    |
+| TRAMO_MAX_UNZIPPED_BYTES      | 31457280               |
+| TRAMO_ALLOWED_HOSTS           | localhost,127.0.0.1    |
+| TRAMO_TRUST_PROXY             | false                  |
+| TRAMO_ANALYZE_LIMIT           | 3                      |
+| TRAMO_ANALYZE_WINDOW          | 600                    |
+| TRAMO_EXTRACT_LIMIT           | 20                     |
+| TRAMO_GENERAL_LIMIT           | 120                    |
+| TRAMO_GENERAL_WINDOW          | 60                     |
+| TRAMO_MAX_CONCURRENT_ANALYSES | 1                      |
 
 ## Project layout
 
