@@ -1,0 +1,26 @@
+from app.advisor import Advisor, Recommendation, build_prompt
+from app.domain import Status, Topic, TopicMatch, Verdict
+from app.policy import EquivalencePolicy
+from tests.fakes import RoutedLLM
+
+
+def report():
+    matches = [
+        TopicMatch(target=Topic(index=0, text="Bucles"), status=Status.covered, reason="Igual."),
+        TopicMatch(target=Topic(index=1, text="DOM"), status=Status.missing, reason="No aparece."),
+    ]
+    return EquivalencePolicy(0.5).evaluate(matches)
+
+
+def test_prompt_states_the_calculated_facts_and_only_the_open_topics():
+    prompt = build_prompt(report())
+    assert "Cobertura calculada: 50%" in prompt
+    assert "evidencia insuficiente" in prompt
+    assert "1. sin evidencia: DOM. No aparece." in prompt
+    assert "Bucles" not in prompt
+
+
+def test_returns_the_trimmed_recommendation():
+    advisor = Advisor(RoutedLLM({Recommendation: [Recommendation(recommendation="  Revisar DOM primero.  ")]}))
+    assert advisor.recommend(report()) == "Revisar DOM primero."
+    assert report().verdict is Verdict.insufficient
