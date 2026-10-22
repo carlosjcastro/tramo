@@ -1,3 +1,5 @@
+import re
+
 from pydantic import BaseModel
 
 from app.domain import Status, Topic, TopicMatch
@@ -7,13 +9,16 @@ SYSTEM_PROMPT = (
     "Ayudás a un docente a revisar una solicitud de equivalencia entre dos materias universitarias. "
     "Recibís la lista numerada de temas del programa de la materia APROBADA (origen) y una lista numerada de temas "
     "de la materia a RECONOCER (destino). Para cada tema de destino decidí con criterio estricto: "
-    "cubierto si algún tema del origen enseña lo mismo con alcance y profundidad equivalentes; "
+    "cubierto solo si algún tema del origen enseña explícitamente ese mismo contenido con alcance y profundidad "
+    "equivalentes; un tema base, previo o relacionado no alcanza para cubierto; "
     "parcial si el origen cubre solo una parte, o el tema de destino exige más profundidad, más herramientas o una "
     "tecnología específica que el origen no menciona; "
     "sin_evidencia si ningún tema del origen corresponde. "
     "Compartir palabras como introducción, avanzado o programación no alcanza. "
-    "Citá en source_numbers los números de los temas del origen que respaldan tu decisión, o una lista vacía si no hay. "
-    "Explicá en reason, en una o dos oraciones en español, qué coincide y qué falta. "
+    "Citá en source_numbers, como máximo cinco, los números de los temas del origen que mejor respaldan tu decisión, "
+    "o una lista vacía si no hay. "
+    "Explicá en reason, en una o dos oraciones en español, qué coincide y qué falta, nombrando los temas por su "
+    "texto y sin escribir nunca sus números. "
     "Devolvé una evaluación por cada tema de destino, usando su número en target_number."
 )
 
@@ -27,6 +32,14 @@ class Assessment(BaseModel):
 
 class AssessmentBatch(BaseModel):
     assessments: list[Assessment]
+
+
+MAX_SOURCES = 5
+NUMBER_REFERENCE = re.compile(r"\s*\((?:temas?\s+)?\d+(?:\s*(?:,|y|a|-|–)\s*\d+)*\)")
+
+
+def clean_reason(reason: str) -> str:
+    return NUMBER_REFERENCE.sub("", reason).strip()
 
 
 def numbered(topics: list[Topic]) -> str:
@@ -67,5 +80,6 @@ class TopicAssessor:
         return [self._match(topic, by_number[number], sources) for number, topic in enumerate(targets, 1)]
 
     def _match(self, target: Topic, item: Assessment, sources: list[Topic]) -> TopicMatch:
-        cited = [] if item.status is Status.missing else [sources[number - 1] for number in item.source_numbers]
-        return TopicMatch(target=target, sources=cited, status=item.status, reason=item.reason.strip())
+        numbers = list(dict.fromkeys(item.source_numbers))[:MAX_SOURCES]
+        cited = [] if item.status is Status.missing else [sources[number - 1] for number in numbers]
+        return TopicMatch(target=target, sources=cited, status=item.status, reason=clean_reason(item.reason))
