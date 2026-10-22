@@ -1,0 +1,6 @@
+Unidad 1: Tipos de datos simples, variables y expresiones aritméticas y lógicas.
+Unidad 2: Estructuras condicionales y repetitivas.
+Unidad 3: Subprogramas, pasaje de parámetros y alcance de variables.
+Unidad 4: Arreglos unidimensionales y matrices.
+Unidad 5: Listas, pilas y colas como tipos abstractos de datos.
+Unidad 6: Algoritmos de búsqueda y ordenamiento.
