@@ -2,7 +2,14 @@ from app.advisor import Advisor
 from app.assessment import TopicAssessor
 from app.domain import Report, TopicMatch
 from app.policy import EquivalencePolicy
+from app.sanitize import clean_input, looks_like_injection
 from app.topics import TopicExtractor
+
+
+INJECTION_WARNING = (
+    "Uno de los programas contiene frases que parecen instrucciones dirigidas a la IA. "
+    "Se trataron como texto del programa, pero revisá el informe con más cuidado."
+)
 
 
 class EquivalenceService:
@@ -28,7 +35,10 @@ class EquivalenceService:
                 "No se detectaron temas en uno de los programas. Revisá que el texto tenga contenidos separados por líneas o por punto y coma."
             )
         report = self._policy.evaluate(self._assessor.assess(sources, targets))
-        return report.model_copy(update={"recommendation": self._advisor.recommend(report), "model": self._model})
+        warnings = [INJECTION_WARNING] if looks_like_injection(clean_input(f"{source_text}\n{target_text}")) else []
+        return report.model_copy(
+            update={"recommendation": self._advisor.recommend(report), "model": self._model, "warnings": warnings}
+        )
 
     def recompute(self, matches: list[TopicMatch]) -> Report:
         return self._policy.evaluate(matches).model_copy(update={"model": self._model})

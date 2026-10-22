@@ -35,3 +35,4 @@ class Report(BaseModel):
     pending_topics: list[str]
     recommendation: str | None = None
     model: str = ""
+    warnings: list[str] = []
