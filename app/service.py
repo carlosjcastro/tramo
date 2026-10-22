@@ -12,6 +12,12 @@ INJECTION_WARNING = (
 )
 
 
+FALLBACK_WARNING = (
+    "La IA no pudo devolver los temas de uno de los programas en el formato esperado, "
+    "así que se usó un método por reglas. Revisá que los temas del informe sean los correctos."
+)
+
+
 class EquivalenceService:
     def __init__(
         self,
@@ -28,14 +34,19 @@ class EquivalenceService:
         self._model = model
 
     def analyze(self, source_text: str, target_text: str) -> Report:
-        sources = self._extractor.extract(source_text)
-        targets = self._extractor.extract(target_text)
+        origin = self._extractor.extract(source_text)
+        destination = self._extractor.extract(target_text)
+        sources, targets = origin.topics, destination.topics
         if not sources or not targets:
             raise ValueError(
                 "No se detectaron temas en uno de los programas. Revisá que el texto tenga contenidos separados por líneas o por punto y coma."
             )
         report = self._policy.evaluate(self._assessor.assess(sources, targets))
-        warnings = [INJECTION_WARNING] if looks_like_injection(clean_input(f"{source_text}\n{target_text}")) else []
+        warnings = []
+        if looks_like_injection(clean_input(f"{source_text}\n{target_text}")):
+            warnings.append(INJECTION_WARNING)
+        if not (origin.by_model and destination.by_model):
+            warnings.append(FALLBACK_WARNING)
         return report.model_copy(
             update={"recommendation": self._advisor.recommend(report), "model": self._model, "warnings": warnings}
         )
