@@ -1,4 +1,4 @@
-from app.advisor import Advisor, Recommendation, build_prompt, keep_verified_sentences
+from app.advisor import Advisor, Recommendation, allowed_numbers, build_prompt, keep_verified_sentences, missing_runs
 from app.domain import Status, Topic, TopicMatch, Verdict
 from app.policy import EquivalencePolicy
 from tests.fakes import RoutedLLM
@@ -33,3 +33,24 @@ def test_drops_sentences_with_numbers_the_code_did_not_calculate():
 
 def test_returns_nothing_when_every_sentence_has_an_unverified_number():
     assert keep_verified_sentences("Faltan 18 temas.", {50}) is None
+
+
+def long_report():
+    states = [Status.covered, Status.missing, Status.missing, Status.covered] + [Status.missing] * 5 + [Status.partial]
+    matches = [TopicMatch(target=Topic(index=i, text=f"Tema {i}"), status=state, reason="x") for i, state in enumerate(states)]
+    return EquivalencePolicy(0.5).evaluate(matches)
+
+
+def test_finds_the_longest_consecutive_runs_without_evidence():
+    assert missing_runs(long_report().matches) == [("Tema 4", "Tema 8", 5)]
+
+
+def test_prompt_lists_the_runs_and_their_lengths_are_allowed_numbers():
+    prompt = build_prompt(long_report())
+    assert "Desde «Tema 4» hasta «Tema 8» (5 temas)" in prompt
+    assert 5 in allowed_numbers(long_report())
+
+
+def test_short_runs_are_not_reported():
+    assert missing_runs(report().matches) == []
+    assert "Tramos consecutivos" not in build_prompt(report())
