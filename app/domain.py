@@ -22,10 +22,10 @@ class Topic(BaseModel):
 
 class TopicMatch(BaseModel):
     target: Topic
-    source: Topic | None
-    score: float
+    sources: list[Topic] = []
     status: Status
-    evidence: str | None = None
+    reason: str = ""
+    overridden: bool = False
 
 
 class Report(BaseModel):
@@ -33,3 +33,5 @@ class Report(BaseModel):
     coverage: float = Field(ge=0, le=1)
     verdict: Verdict
     pending_topics: list[str]
+    recommendation: str | None = None
+    model: str = ""
