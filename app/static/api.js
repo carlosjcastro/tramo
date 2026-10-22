@@ -1,9 +1,12 @@
 const TIMEOUT_MS = 1800000;
 
 const MESSAGES = {
-  network: "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.",
-  timeout: "El análisis tardó demasiado. Un equipo sin GPU potente puede necesitar varios minutos. Probá con programas más cortos.",
-  server: "El servidor no pudo procesar la solicitud. Intentá de nuevo en unos minutos.",
+  network:
+    "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.",
+  timeout:
+    "El análisis tardó demasiado. Un equipo sin GPU potente puede necesitar varios minutos. Probá con programas más cortos.",
+  server:
+    "El servidor no pudo procesar la solicitud. Intentá de nuevo en unos minutos.",
 };
 
 export class ApiError extends Error {
@@ -26,12 +29,16 @@ const send = async (path, options) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(path, { ...options, signal: controller.signal });
+    const response = await fetch(path, {
+      ...options,
+      signal: controller.signal,
+    });
     if (!response.ok) throw await failure(response);
     return await response.json();
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    if (error.name === "AbortError") throw new ApiError(MESSAGES.timeout, "timeout");
+    if (error.name === "AbortError")
+      throw new ApiError(MESSAGES.timeout, "timeout");
     throw new ApiError(MESSAGES.network, "network");
   } finally {
     clearTimeout(timer);

@@ -8,10 +8,13 @@ const extensionOf = (name) => name.slice(name.lastIndexOf(".")).toLowerCase();
 
 const fileProblem = (file) => {
   const extension = extensionOf(file.name);
-  if (extension === ".doc") return "Los archivos .doc antiguos no se pueden leer. Abrilo en Word y guardalo como .docx.";
-  if (!EXTENSIONS.includes(extension)) return "Solo se aceptan archivos PDF o Word (.docx).";
+  if (extension === ".doc")
+    return "Los archivos .doc antiguos no se pueden leer. Abrilo en Word y guardalo como .docx.";
+  if (!EXTENSIONS.includes(extension))
+    return "Solo se aceptan archivos PDF o Word (.docx).";
   if (file.size === 0) return "El archivo está vacío.";
-  if (file.size > limits.maxFileBytes) return `El archivo supera el máximo de ${megabytes(limits.maxFileBytes)}.`;
+  if (file.size > limits.maxFileBytes)
+    return `El archivo supera el máximo de ${megabytes(limits.maxFileBytes)}.`;
   return "";
 };
 
@@ -56,7 +59,9 @@ export const createField = (root, emptyMessage) => {
     try {
       const result = await extractFile(file);
       area.value = result.text;
-      showFile(`${result.filename}, ${count(result.characters)} caracteres. Revisá el texto.`);
+      showFile(
+        `${result.filename}, ${count(result.characters)} caracteres. Revisá el texto.`,
+      );
       refresh();
     } catch (failure) {
       showError(failure.message);
@@ -70,12 +75,16 @@ export const createField = (root, emptyMessage) => {
     event.preventDefault();
     root.classList.remove("is-dropping");
     const { files } = event.dataTransfer;
-    if (files.length > 1) return showError("Subí un solo archivo por programa.");
+    if (files.length > 1)
+      return showError("Subí un solo archivo por programa.");
     if (files.length === 1) load(files[0]);
   };
 
   pick.addEventListener("click", () => input.click());
-  input.addEventListener("change", () => input.files[0] && load(input.files[0]));
+  input.addEventListener(
+    "change",
+    () => input.files[0] && load(input.files[0]),
+  );
   remove.addEventListener("click", () => api.set(""));
   area.addEventListener("input", () => {
     showError("");
@@ -86,7 +95,8 @@ export const createField = (root, emptyMessage) => {
     root.classList.add("is-dropping");
   });
   root.addEventListener("dragleave", (event) => {
-    if (!root.contains(event.relatedTarget)) root.classList.remove("is-dropping");
+    if (!root.contains(event.relatedTarget))
+      root.classList.remove("is-dropping");
   });
   root.addEventListener("drop", drop);
 
