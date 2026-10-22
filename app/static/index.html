@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tramo</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+<h1>Tramo</h1>
+<p>Compará el programa de una materia aprobada con el de la materia destino y obtené un borrador de informe de equivalencia para el docente.</p>
+</header>
+<main>
+<form id="form">
+<label>Programa de origen, materia aprobada
+<textarea id="source" required rows="9"></textarea>
+</label>
+<label>Programa de destino, materia a reconocer
+<textarea id="target" required rows="9"></textarea>
+</label>
+<div class="actions">
+<button type="submit" id="submit">Analizar</button>
+<button type="button" id="example" class="secondary">Cargar ejemplo</button>
+</div>
+</form>
+<p id="status" role="status" aria-live="polite"></p>
+<section id="result" hidden>
+<div class="summary">
+<div><span id="coverage"></span><small>cobertura estimada</small></div>
+<p id="verdict"></p>
+</div>
+<table>
+<thead><tr><th>Tema de destino</th><th>Estado</th><th>Fragmento de origen</th><th>Similitud</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p class="note">Borrador asistido por IA. El docente firma el informe y el Consejo Directivo resuelve.</p>
+</section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

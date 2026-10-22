@@ -1,0 +1,29 @@
+:root{--bg:#f6f5f1;--ink:#1c1b19;--muted:#6b675f;--line:#dcd8cf;--card:#fff;--accent:#1f5f4a;--ok:#1f7a4d;--mid:#b7791f;--bad:#a8362f}
+@media (prefers-color-scheme:dark){:root{--bg:#141412;--ink:#ece9e2;--muted:#9b968b;--line:#2e2c28;--card:#1c1b19;--accent:#5fb394;--ok:#5fb394;--mid:#e0a44a;--bad:#e07a72}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+header,main{max-width:1000px;margin:0 auto;padding:0 16px}
+header{padding-top:40px}
+h1{margin:0 0 4px;font-size:2rem;letter-spacing:-.02em}
+header p{margin:0 0 24px;color:var(--muted);max-width:60ch}
+form{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+label{display:grid;gap:6px;font-weight:600;font-size:.9rem}
+textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-weight:400;resize:vertical}
+.actions{grid-column:1/-1;display:flex;gap:12px}
+button{padding:10px 20px;border:0;border-radius:8px;background:var(--accent);color:var(--bg);font:inherit;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.6;cursor:wait}
+#status{min-height:1.5em;color:var(--muted)}
+.summary{display:flex;align-items:center;gap:24px;padding:16px 20px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.summary span{display:block;font-size:2.4rem;font-weight:700;line-height:1}
+.summary small{color:var(--muted)}
+.summary p{margin:0;font-weight:600}
+table{width:100%;margin-top:16px;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.92rem}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.badge{font-weight:700}
+.cubierto{color:var(--ok)}
+.parcial{color:var(--mid)}
+.sin_evidencia{color:var(--bad)}
+.note{color:var(--muted);font-size:.85rem;padding-bottom:40px}
+@media (max-width:720px){form{grid-template-columns:1fr}table{display:block;overflow-x:auto}}
