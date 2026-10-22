@@ -11,7 +11,8 @@ SYSTEM_PROMPT = (
     "Recibís el texto crudo de un PDF o Word, que puede traer encabezados, nombres de docentes, carga horaria, "
     "correlativas, bibliografía, números de página, viñetas rotas y palabras cortadas por la extracción. "
     "Devolvé solo los temas de contenido, uno por elemento, con sus palabras originales y corrigiendo cortes de palabras. "
-    "Si una unidad tiene subtemas, devolvé cada subtema como un tema aparte. "
+    "Si una unidad tiene subtemas, o una línea enumera varios contenidos distintos separados por comas, "
+    "devolvé cada uno como un tema aparte. "
     "No inventes temas. Ignorá objetivos, metodología, evaluación, bibliografía y datos administrativos."
 )
 
