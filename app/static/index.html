@@ -241,9 +241,23 @@
           >
             <p class="analyzing-kicker">Tu equipo está trabajando</p>
             <h3 class="analyzing-title" id="analyzingTitle" tabindex="-1">
-              <span class="sr-only">Analizando los programas</span
-              ><span id="analyzingLetters" aria-hidden="true"></span>
+              <span
+                class="paint"
+                id="paint"
+                role="progressbar"
+                aria-label="Progreso del análisis"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+              >
+                <span class="paint-base" aria-hidden="true">Analizando...</span>
+                <span class="paint-fill" aria-hidden="true">Analizando...</span>
+              </span>
             </h3>
+            <p class="analyzing-stage">
+              <strong id="percent">0 %</strong
+              ><span id="stage">Preparando el análisis</span>
+            </p>
             <div class="analyzing-road" aria-hidden="true"><span></span></div>
             <p class="analyzing-time" aria-hidden="true">
               <span id="elapsed">00:00</span><small>transcurrido</small>
