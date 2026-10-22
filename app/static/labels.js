@@ -1,3 +1,15 @@
+const STAGES = {
+  extracting_origin: () => "Leyendo el programa de origen",
+  extracting_target: () => "Leyendo el programa de destino",
+  assessing: ({ current, count }) =>
+    `Razonando cada tema, parte ${current} de ${count}`,
+  advising: () => "Redactando la recomendación",
+  finished: () => "Informe listo",
+};
+
+export const stageText = (event) =>
+  (STAGES[event.stage] ?? (() => "Analizando"))(event);
+
 export const STATUSES = {
   cubierto: "Cubierto",
   parcial: "Parcial",

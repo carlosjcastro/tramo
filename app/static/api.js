@@ -25,16 +25,11 @@ const failure = async (response) => {
   return new ApiError(MESSAGES.server, "server");
 };
 
-const send = async (path, options) => {
+const guarded = async (run) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const response = await fetch(path, {
-      ...options,
-      signal: controller.signal,
-    });
-    if (!response.ok) throw await failure(response);
-    return await response.json();
+    return await run(controller.signal);
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error.name === "AbortError")
@@ -45,13 +40,51 @@ const send = async (path, options) => {
   }
 };
 
+const request = (path, options) =>
+  guarded(async (signal) => {
+    const response = await fetch(path, { ...options, signal });
+    if (!response.ok) throw await failure(response);
+    return response;
+  });
+
+const send = async (path, options) => (await request(path, options)).json();
+
+const handle = (event, onProgress) => {
+  if (event.type === "error") throw new ApiError(event.message, event.code);
+  if (event.type === "progress") onProgress(event);
+  return event.type === "report" ? event.report : null;
+};
+
+const readReport = async (body, onProgress) => {
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader();
+  let pending = "";
+  let report = null;
+  for (
+    let chunk = await reader.read();
+    !chunk.done;
+    chunk = await reader.read()
+  ) {
+    const lines = (pending + chunk.value).split("\n");
+    pending = lines.pop();
+    for (const line of lines.filter(Boolean))
+      report = handle(JSON.parse(line), onProgress) ?? report;
+  }
+  if (!report) throw new ApiError(MESSAGES.server, "server");
+  return report;
+};
+
 export const getLimits = () => send("/api/limits");
 
-export const analyze = (payload) =>
-  send("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+export const analyze = (payload, onProgress) =>
+  guarded(async (signal) => {
+    const response = await fetch("/api/analyze/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    if (!response.ok) throw await failure(response);
+    return readReport(response.body, onProgress);
   });
 
 export const recompute = (matches) =>
