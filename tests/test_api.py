@@ -1,9 +1,10 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.advisor import Advisor, Recommendation
 from app.api import app
 from app.assessment import Assessment, AssessmentBatch, TopicAssessor
-from app.container import get_llm, get_service
+from app.container import get_limiters, get_llm, get_service
 from app.domain import Status
 from app.policy import EquivalencePolicy
 from app.service import EquivalenceService
@@ -27,7 +28,12 @@ def fake_service() -> EquivalenceService:
 
 app.dependency_overrides[get_service] = fake_service
 app.dependency_overrides[get_llm] = lambda: RoutedLLM({})
-client = TestClient(app)
+client = TestClient(app, base_url="http://localhost")
+
+
+@pytest.fixture(autouse=True)
+def fresh_limits():
+    get_limiters.cache_clear()
 
 
 def upload(name: str, data: bytes):
