@@ -4,12 +4,6 @@ const MESSAGES = {
   network: "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.",
   timeout: "El análisis tardó demasiado. Un equipo sin GPU potente puede necesitar varios minutos. Probá con programas más cortos.",
   server: "El servidor no pudo procesar la solicitud. Intentá de nuevo en unos minutos.",
-  invalid: "Los datos enviados no son válidos. Revisá los dos programas.",
-};
-
-const VALIDATION = {
-  string_too_short: "Completá los dos programas antes de generar el informe.",
-  string_too_long: "Uno de los textos supera el máximo de caracteres permitido.",
 };
 
 export class ApiError extends Error {
@@ -24,9 +18,6 @@ const failure = async (response) => {
   const { detail } = body;
   if (detail && typeof detail === "object" && !Array.isArray(detail)) {
     return new ApiError(detail.message, detail.code);
-  }
-  if (Array.isArray(detail)) {
-    return new ApiError(VALIDATION[detail[0]?.type] ?? MESSAGES.invalid, "invalid_input");
   }
   return new ApiError(MESSAGES.server, "server");
 };

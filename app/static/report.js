@@ -83,6 +83,12 @@ const renderAdvice = (report) => {
   $("adjusted").hidden = Boolean(report.recommendation) || !adjusted;
 };
 
+const renderCaution = (report) => {
+  const [first] = report.warnings ?? [];
+  $("caution").hidden = !first;
+  $("caution").textContent = first ?? "";
+};
+
 const animateNumber = (node, target) => {
   if (reducedMotion()) {
     node.textContent = target;
@@ -111,6 +117,7 @@ export const renderReport = (report, { scroll = true } = {}) => {
   $("informeMeta").textContent = `${count(report.matches.length)} temas del programa de destino analizados con ${report.model}.`;
   renderMeter(report.coverage);
   renderVerdict(report.verdict);
+  renderCaution(report);
   renderAdvice(report);
   renderTally(report.matches);
   renderPending(report);
@@ -130,6 +137,8 @@ export const filterReport = (value) => {
   renderTopics();
 };
 
+export const withWarnings = (report) => ({ ...report, warnings: state.report.warnings });
+
 export const matchesWithStatus = (index, status) =>
   state.report.matches.map((match) => (match.target.index === index ? { ...match, status, overridden: true } : match));
 
@@ -146,6 +155,7 @@ export const reportText = () => {
     "Informe de equivalencia (borrador asistido por IA)",
     `Cobertura estimada: ${percent(report.coverage)}%`,
     `${title}. ${detail}`,
+    ...(report.warnings?.length ? ["", `Atención: ${report.warnings.join(" ")}`] : []),
     ...(report.recommendation ? ["", `Recomendación de la IA: ${report.recommendation}`] : []),
     "",
     ...report.matches.flatMap(matchLines),

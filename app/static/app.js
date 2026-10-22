@@ -4,7 +4,7 @@ import { createField } from "./fields.js";
 import { EXAMPLE } from "./labels.js";
 import { limits } from "./limits.js";
 import { clearNotice, notify } from "./notices.js";
-import { filterReport, matchesWithStatus, renderReport, renderTopics, reportText } from "./report.js";
+import { filterReport, matchesWithStatus, renderReport, renderTopics, reportText, withWarnings } from "./report.js";
 
 const fields = {
   source: createField($("fieldSource"), "Pegá o subí el programa de la materia aprobada."),
@@ -57,7 +57,7 @@ const adjust = async (event) => {
   const select = event.target.closest(".status-select");
   if (!select) return;
   try {
-    renderReport(await recompute(matchesWithStatus(Number(select.dataset.index), select.value)), { scroll: false });
+    renderReport(withWarnings(await recompute(matchesWithStatus(Number(select.dataset.index), select.value))), { scroll: false });
   } catch (failure) {
     renderTopics();
     notify("error", failure.message, { title: "No se pudo recalcular" });
