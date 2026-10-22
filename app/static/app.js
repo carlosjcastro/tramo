@@ -1,78 +1,96 @@
-const VERDICTS = {
-  equivalencia_total: "Equivalencia total propuesta",
-  equivalencia_parcial: "Equivalencia parcial propuesta. El docente define los temas a rendir (art. 88)",
-  evidencia_insuficiente: "Evidencia insuficiente. La cobertura no supera el 50% (art. 87)",
-};
-const STATUS_LABELS = { cubierto: "Cubierto", parcial: "Parcial", sin_evidencia: "Sin evidencia" };
-const EXAMPLE = {
-  source: "Unidad 1: Tipos de datos simples, variables y expresiones.\nUnidad 2: Estructuras condicionales y repetitivas.\nUnidad 3: Subprogramas y pasaje de parámetros.\nUnidad 4: Arreglos y matrices.\nUnidad 5: Listas, pilas y colas como tipos abstractos de datos.\nUnidad 6: Algoritmos de búsqueda y ordenamiento.",
-  target: "Variables, tipos de datos y operadores. Estructuras de control, condicionales y bucles. Funciones y modularización. Arreglos y objetos. Manipulación del modelo de objetos del documento (DOM). Programación asincrónica y eventos. Tipos de Datos Abstractos: pilas, colas y listas. Introducción a pruebas unitarias.",
-};
+import { analyze, getLimits, recompute } from "./api.js";
+import { $ } from "./dom.js";
+import { createField } from "./fields.js";
+import { EXAMPLE } from "./labels.js";
+import { limits } from "./limits.js";
+import { clearNotice, notify } from "./notices.js";
+import { filterReport, matchesWithStatus, renderReport, renderTopics, reportText } from "./report.js";
 
-const $ = (id) => document.getElementById(id);
-
-const cell = (content) => {
-  const td = document.createElement("td");
-  td.append(content);
-  return td;
-};
-
-const badge = (status) => {
-  const span = document.createElement("span");
-  span.className = `badge ${status}`;
-  span.textContent = STATUS_LABELS[status];
-  return span;
-};
-
-const renderRow = (match) => {
-  const tr = document.createElement("tr");
-  tr.append(
-    cell(match.target.text),
-    cell(badge(match.status)),
-    cell(match.source ? match.source.text : "Sin fragmento relacionado"),
-    cell(match.score.toFixed(2)),
-  );
-  return tr;
-};
-
-const render = (report) => {
-  $("coverage").textContent = `${Math.round(report.coverage * 100)}%`;
-  $("verdict").textContent = VERDICTS[report.verdict];
-  $("rows").replaceChildren(...report.matches.map(renderRow));
-  $("result").hidden = false;
-};
-
-const request = async (payload) => {
-  const response = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(typeof body.detail === "string" ? body.detail : "No se pudo analizar");
-  }
-  return response.json();
+const fields = {
+  source: createField($("fieldSource"), "Pegá o subí el programa de la materia aprobada."),
+  target: createField($("fieldTarget"), "Pegá o subí el programa de la materia a reconocer."),
 };
 
 const setBusy = (busy) => {
   $("submit").disabled = busy;
-  $("status").textContent = busy ? "Analizando" : "";
+  $("form").setAttribute("aria-busy", String(busy));
+  if (busy) notify("info", "La IA lee los dos programas y razona cada tema. Puede tardar varios minutos, sobre todo la primera vez que carga el modelo.", { title: "Analizando" });
 };
 
-$("form").addEventListener("submit", async (event) => {
+const submit = async (event) => {
   event.preventDefault();
+  const checks = Object.values(fields).map((field) => field.validate());
+  if (!checks.every(Boolean)) {
+    notify("warning", "Completá los dos programas para generar el informe.", { title: "Faltan datos" });
+    return Object.values(fields).find((field) => !field.value()).focus();
+  }
   setBusy(true);
   try {
-    render(await request({ source: $("source").value, target: $("target").value }));
-    setBusy(false);
-  } catch (error) {
-    setBusy(false);
-    $("status").textContent = error.message;
+    const report = await analyze({ source: fields.source.value(), target: fields.target.value() });
+    clearNotice();
+    renderReport(report);
+  } catch (failure) {
+    notify("error", failure.message, { title: "No se pudo generar el informe" });
+  } finally {
+    $("submit").disabled = false;
+    $("form").setAttribute("aria-busy", "false");
   }
+};
+
+const copy = async () => {
+  try {
+    await navigator.clipboard.writeText(reportText());
+    notify("success", "El informe quedó copiado al portapapeles.", { title: "Copiado", ttl: 4000 });
+  } catch {
+    notify("error", "El navegador no permitió copiar. Usá la opción de imprimir o seleccioná el texto.", { title: "No se pudo copiar" });
+  }
+};
+
+const announceEngine = ({ model, model_ready: ready }) => {
+  $("engine").textContent = ready ? `IA local lista: ${model}.` : `IA local no disponible: ${model}.`;
+  if (!ready) {
+    notify("warning", `Comprobá que Ollama esté abierto y ejecutá: ollama pull ${model}`, { title: "Falta el modelo de IA" });
+  }
+};
+
+const adjust = async (event) => {
+  const select = event.target.closest(".status-select");
+  if (!select) return;
+  try {
+    renderReport(await recompute(matchesWithStatus(Number(select.dataset.index), select.value)), { scroll: false });
+  } catch (failure) {
+    renderTopics();
+    notify("error", failure.message, { title: "No se pudo recalcular" });
+  }
+};
+
+const loadLimits = async () => {
+  try {
+    const remote = await getLimits();
+    Object.assign(limits, { maxChars: remote.max_chars, maxFileBytes: remote.max_file_bytes });
+    Object.values(fields).forEach((field) => field.refresh());
+    announceEngine(remote);
+  } catch (failure) {
+    notify("error", failure.message, { title: "Sin conexión con el servidor" });
+  }
+};
+
+$("form").addEventListener("submit", submit);
+$("example").addEventListener("click", () => {
+  fields.source.set(EXAMPLE.source);
+  fields.target.set(EXAMPLE.target);
+  clearNotice();
+});
+$("clear").addEventListener("click", () => {
+  Object.values(fields).forEach((field) => field.set(""));
+  clearNotice();
+});
+$("copy").addEventListener("click", copy);
+$("topics").addEventListener("change", adjust);
+$("print").addEventListener("click", () => window.print());
+$("filters").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-filter]");
+  if (button) filterReport(button.dataset.filter);
 });
 
-$("example").addEventListener("click", () => {
-  $("source").value = EXAMPLE.source;
-  $("target").value = EXAMPLE.target;
-});
+loadLimits();
