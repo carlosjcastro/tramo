@@ -2,9 +2,9 @@ import os
 from dataclasses import dataclass
 
 
-def env_flag(name: str) -> bool | None:
+def env_flag(name: str, default: bool) -> bool:
     value = os.getenv(name, "").strip().lower()
-    return {"true": True, "false": False}.get(value)
+    return {"true": True, "false": False}.get(value, default)
 
 
 def env_list(name: str, default: str) -> tuple[str, ...]:
@@ -15,7 +15,7 @@ def env_list(name: str, default: str) -> tuple[str, ...]:
 class Settings:
     ollama_host: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")
     model: str = os.getenv("TRAMO_MODEL", "gemma4:e4b")
-    think: bool | None = env_flag("TRAMO_THINK")
+    think: bool = env_flag("TRAMO_THINK", False)
     num_ctx: int = int(os.getenv("TRAMO_NUM_CTX", "12288"))
     batch_size: int = int(os.getenv("TRAMO_BATCH_SIZE", "12"))
     request_timeout: float = float(os.getenv("TRAMO_REQUEST_TIMEOUT", "600"))
