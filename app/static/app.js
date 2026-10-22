@@ -1,5 +1,10 @@
 import { analyze, getLimits, recompute } from "./api.js";
-import { startAnalyzing, stopAnalyzing } from "./analyzing.js";
+import {
+  completeAnalyzing,
+  showProgress,
+  startAnalyzing,
+  stopAnalyzing,
+} from "./analyzing.js";
 import { $ } from "./dom.js";
 import { createField } from "./fields.js";
 import { EXAMPLE } from "./labels.js";
@@ -49,10 +54,11 @@ const submit = async (event) => {
   }
   setBusy(true);
   try {
-    const report = await analyze({
-      source: fields.source.value(),
-      target: fields.target.value(),
-    });
+    const report = await analyze(
+      { source: fields.source.value(), target: fields.target.value() },
+      showProgress,
+    );
+    await completeAnalyzing();
     setBusy(false);
     clearNotice();
     renderReport(report);
