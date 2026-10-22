@@ -53,3 +53,11 @@ def test_splits_the_targets_in_batches_and_always_sends_every_source():
 def test_rejects_incomplete_or_inconsistent_assessments(invalid):
     with pytest.raises(ValueError):
         assess([invalid], topics("Bucles"), topics("A uno", "B dos"))
+
+
+def test_removes_number_references_and_limits_the_cited_sources():
+    sources = [Topic(index=n, text=f"Tema {n}") for n in range(8)]
+    item = covered(1, [1, 1, 2, 3, 4, 5, 6, 7], "Cubre la iteración (25) y los bucles (15-18).")
+    matches, _ = assess([batch(item)], sources, [Topic(index=0, text="Bucles")])
+    assert matches[0].reason == "Cubre la iteración y los bucles."
+    assert [source.text for source in matches[0].sources] == ["Tema 0", "Tema 1", "Tema 2", "Tema 3", "Tema 4"]
