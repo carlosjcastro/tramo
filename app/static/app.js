@@ -1,55 +1,96 @@
 import { analyze, getLimits, recompute } from "./api.js";
+import { startAnalyzing, stopAnalyzing } from "./analyzing.js";
 import { $ } from "./dom.js";
 import { createField } from "./fields.js";
 import { EXAMPLE } from "./labels.js";
 import { limits } from "./limits.js";
 import { clearNotice, notify } from "./notices.js";
-import { filterReport, matchesWithStatus, renderReport, renderTopics, reportText, withWarnings } from "./report.js";
+import {
+  filterReport,
+  matchesWithStatus,
+  renderReport,
+  renderTopics,
+  reportText,
+  withWarnings,
+} from "./report.js";
 
 const fields = {
-  source: createField($("fieldSource"), "Pegá o subí el programa de la materia aprobada."),
-  target: createField($("fieldTarget"), "Pegá o subí el programa de la materia a reconocer."),
+  source: createField(
+    $("fieldSource"),
+    "Pegá o subí el programa de la materia aprobada.",
+  ),
+  target: createField(
+    $("fieldTarget"),
+    "Pegá o subí el programa de la materia a reconocer.",
+  ),
 };
 
 const setBusy = (busy) => {
   $("submit").disabled = busy;
   $("form").setAttribute("aria-busy", String(busy));
-  if (busy) notify("info", "La IA lee los dos programas y razona cada tema. Puede tardar varios minutos, sobre todo la primera vez que carga el modelo.", { title: "Analizando" });
+  if (busy) {
+    clearNotice();
+    startAnalyzing();
+  } else {
+    stopAnalyzing();
+  }
 };
 
 const submit = async (event) => {
   event.preventDefault();
   const checks = Object.values(fields).map((field) => field.validate());
   if (!checks.every(Boolean)) {
-    notify("warning", "Completá los dos programas para generar el informe.", { title: "Faltan datos" });
-    return Object.values(fields).find((field) => !field.value()).focus();
+    notify("warning", "Completá los dos programas para generar el informe.", {
+      title: "Faltan datos",
+    });
+    return Object.values(fields)
+      .find((field) => !field.value())
+      .focus();
   }
   setBusy(true);
   try {
-    const report = await analyze({ source: fields.source.value(), target: fields.target.value() });
+    const report = await analyze({
+      source: fields.source.value(),
+      target: fields.target.value(),
+    });
+    setBusy(false);
     clearNotice();
     renderReport(report);
   } catch (failure) {
-    notify("error", failure.message, { title: "No se pudo generar el informe" });
+    notify("error", failure.message, {
+      title: "No se pudo generar el informe",
+    });
   } finally {
-    $("submit").disabled = false;
-    $("form").setAttribute("aria-busy", "false");
+    setBusy(false);
   }
 };
 
 const copy = async () => {
   try {
     await navigator.clipboard.writeText(reportText());
-    notify("success", "El informe quedó copiado al portapapeles.", { title: "Copiado", ttl: 4000 });
+    notify("success", "El informe quedó copiado al portapapeles.", {
+      title: "Copiado",
+      ttl: 4000,
+    });
   } catch {
-    notify("error", "El navegador no permitió copiar. Usá la opción de imprimir o seleccioná el texto.", { title: "No se pudo copiar" });
+    notify(
+      "error",
+      "El navegador no permitió copiar. Usá la opción de imprimir o seleccioná el texto.",
+      { title: "No se pudo copiar" },
+    );
   }
 };
 
 const announceEngine = ({ model, model_ready: ready }) => {
-  $("engine").textContent = ready ? `IA local lista: ${model}.` : `IA local no disponible: ${model}.`;
+  $("engine").textContent = ready
+    ? `IA local lista: ${model}.`
+    : `IA local no disponible: ${model}.`;
   if (!ready) {
-    notify("warning", `Comprobá que Ollama esté abierto y ejecutá: ollama pull ${model}`, { title: "Falta el modelo de IA" });
+    notify(
+      "warning",
+      `Comprobá que Ollama esté abierto y ejecutá: ollama pull ${model}`,
+      { title: "Falta el modelo de IA" },
+    );
   }
 };
 
@@ -57,7 +98,14 @@ const adjust = async (event) => {
   const select = event.target.closest(".status-select");
   if (!select) return;
   try {
-    renderReport(withWarnings(await recompute(matchesWithStatus(Number(select.dataset.index), select.value))), { scroll: false });
+    renderReport(
+      withWarnings(
+        await recompute(
+          matchesWithStatus(Number(select.dataset.index), select.value),
+        ),
+      ),
+      { scroll: false },
+    );
   } catch (failure) {
     renderTopics();
     notify("error", failure.message, { title: "No se pudo recalcular" });
@@ -67,7 +115,10 @@ const adjust = async (event) => {
 const loadLimits = async () => {
   try {
     const remote = await getLimits();
-    Object.assign(limits, { maxChars: remote.max_chars, maxFileBytes: remote.max_file_bytes });
+    Object.assign(limits, {
+      maxChars: remote.max_chars,
+      maxFileBytes: remote.max_file_bytes,
+    });
     Object.values(fields).forEach((field) => field.refresh());
     announceEngine(remote);
   } catch (failure) {
