@@ -2,11 +2,13 @@
 
 ![Tramo, from syllabus to equivalency report](docs/cover.png)
 
+[![Watch the demo on YouTube](https://img.shields.io/badge/Watch_the_demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/E-zZ3ENiBgU)
+[![License MIT](https://img.shields.io/badge/License-MIT-f2c200?style=for-the-badge&labelColor=1b1d1f)](LICENSE)
+[![Gemma 4 with Ollama](https://img.shields.io/badge/Gemma_4-Ollama-1b1d1f?style=for-the-badge&labelColor=f2c200)](https://ollama.com)
+
 Tramo compares the analytic program of a subject a student has already passed with the program of the subject they want recognized, and drafts an equivalency report for the professor who reviews the case. It runs entirely on the computer of whoever uses it, with an open weights model served by Ollama, so the documents never leave the machine.
 
 The software does not decide anything. The model proposes a status for every topic and explains its reasoning with evidence taken from the documents, plain code computes the coverage and applies the equivalency rule, and the professor remains free to overrule any single judgment before signing. The final resolution belongs to the university authorities.
-
-The demo video is also available on [YouTube](https://youtu.be/E-zZ3ENiBgU).
 
 ## The problem it addresses
 
@@ -227,7 +229,7 @@ The test suite has 119 tests covering the equivalency policy, the assessment and
 
 Tramo is released under the MIT license, which lets any person or institution use, copy, modify and distribute the software, including inside a university or faculty, without asking permission and without paying anything. The only condition is to keep the copyright and license notice in every copy. The license does not allow requiring anyone to notify the author, so this repository can ask for that only as a courtesy.
 
-If your university or faculty adopts Tramo, adapts it to its own regulation or wants to validate it with real study plans, I would be glad to hear about it and to help. Please open an issue in this repository or write through carlosjcastrog.com. Institutions that need a different arrangement, such as a warranty, support, a deployment or terms other than MIT, can contact me to agree on them separately.
+If your university or faculty adopts Tramo, adapts it to its own regulation or wants to validate it with real study plans, I would be glad to hear about it and to help. Please open an issue in this repository or write through [carlosjcastrog.com](https://carlosjcastrog.com). Institutions that need a different arrangement, such as a warranty, support, a deployment or terms other than MIT, can contact me to agree on them separately.
 
 Remember that Tramo is a decision support prototype, and that adopting it does not replace the review of a professor or the resolution of the university authorities.
 
