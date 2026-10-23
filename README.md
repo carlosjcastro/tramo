@@ -3,6 +3,7 @@
 ![Tramo, from syllabus to equivalency report](docs/cover.png)
 
 [![Watch the demo on YouTube](https://img.shields.io/badge/Watch_the_demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/E-zZ3ENiBgU)
+[![Read the post on DEV](https://img.shields.io/badge/Read_the_post-DEV-0A0A0A?style=for-the-badge&logo=devdotto&logoColor=white)](https://dev.to/carlosjcastrog/i-taught-gemma-4-to-read-university-syllabi-so-professors-dont-have-to-10f1)
 [![License MIT](https://img.shields.io/badge/License-MIT-f2c200?style=for-the-badge&labelColor=1b1d1f)](LICENSE)
 [![Gemma 4 with Ollama](https://img.shields.io/badge/Gemma_4-Ollama-1b1d1f?style=for-the-badge&labelColor=f2c200)](https://ollama.com)
 
