@@ -218,6 +218,13 @@
               </p>
             </div>
 
+            <p class="form-note">
+              Tramo es un apoyo, no un dictamen. Los programas se procesan en
+              este equipo, no se guardan ni se envían a internet. Cargá solo
+              documentos que tengas derecho a usar.
+              <a href="#limites">Límites y responsabilidad</a>
+            </p>
+
             <div class="actions">
               <button type="submit" class="btn" id="submit">
                 Generar informe <span aria-hidden="true">→</span>
@@ -352,8 +359,9 @@
 
           <div class="report-foot">
             <p>
-              Este informe es un borrador de apoyo. El docente lo firma y el
-              Consejo Directivo resuelve.
+              Borrador generado por IA, puede contener errores. El docente lo
+              revisa y firma, y el Consejo Directivo resuelve. No constituye
+              dictamen ni acto administrativo.
             </p>
             <div class="report-actions">
               <button type="button" class="link" id="copy">
@@ -363,6 +371,72 @@
                 Imprimir o guardar en PDF
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+      <section
+        class="section section-ruled limits"
+        id="limites"
+        aria-labelledby="limitesTitulo"
+      >
+        <div class="wrap">
+          <header class="section-head">
+            <p class="section-no">Transparencia</p>
+            <h2 id="limitesTitulo">Límites y responsabilidad</h2>
+            <p class="section-lead">
+              Qué hace la IA, qué no hace y quién responde por el resultado.
+            </p>
+          </header>
+          <div class="limits-list">
+            <details>
+              <summary>Qué hace la IA y qué hace el código</summary>
+              <p>
+                La IA lee los dos programas, extrae los temas, propone una marca
+                para cada tema de destino citando los temas de origen que usó, y
+                redacta un borrador de recomendación. El código calcula la
+                cobertura y aplica la regla del 50% (art. 87 y 88). La IA no
+                calcula ni decide. El modelo es Gemma 4, de pesos abiertos,
+                ejecutado con Ollama en este equipo, y cada informe indica cuál
+                se usó.
+              </p>
+            </details>
+            <details>
+              <summary>Cuándo puede equivocarse</summary>
+              <p>
+                Puede omitir un tema, malinterpretar un alcance o citar mal una
+                fuente. Dos análisis del mismo par de programas pueden dar
+                porcentajes algo distintos. Compara texto: no conoce los
+                trabajos prácticos, la bibliografía ni la profundidad con que se
+                dictó cada materia, y no lee PDF escaneados como imagen. Por eso
+                el informe muestra su razonamiento y deja cambiar cada estado.
+              </p>
+            </details>
+            <details>
+              <summary>Datos y derechos de autor</summary>
+              <p>
+                Los programas pertenecen a sus instituciones y autores. Tramo
+                los usa solo para este análisis, los procesa en memoria, no los
+                guarda ni los registra y no los envía a internet. Cargá solo
+                documentos que tengas derecho a usar. El informe cita fragmentos
+                breves de lo que cargaste para justificar cada marca. Los
+                programas de ejemplo del repositorio son en parte simulados y no
+                representan planes de estudio reales.
+              </p>
+            </details>
+            <details>
+              <summary>Exención de responsabilidad</summary>
+              <p>
+                Tramo es un prototipo de código abierto bajo licencia MIT, que
+                se ofrece tal cual y sin garantías. Sus resultados son un
+                borrador de apoyo y no constituyen dictamen, informe oficial ni
+                acto administrativo. La equivalencia la firma el docente y la
+                resuelve el Consejo Directivo según el reglamento vigente. Quien
+                usa Tramo debe revisar el resultado y responde por las
+                decisiones que tome con él. Es un proyecto independiente creado
+                por Carlos José Castro Galante. No pertenece a ninguna facultad
+                o universidad, ni cuenta con el aval de estas instituciones.
+              </p>
+            </details>
           </div>
         </div>
       </section>
@@ -422,11 +496,13 @@
             La IA corre en este equipo con Ollama y la aplicación no guarda los
             documentos que se cargan.
           </p>
+          <a href="#limites">Límites y responsabilidad</a>
         </div>
       </div>
       <div class="wrap foot-legal">
         <p>
-          © 2026 Carlos José Castro Galante. Software libre bajo licencia MIT.
+          © 2026 Carlos José Castro Galante. Software libre bajo licencia MIT,
+          sin garantías.
         </p>
         <p>Hecho en San Juan, Argentina.</p>
       </div>
