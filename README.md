@@ -20,6 +20,17 @@ The AI proposes and justifies. The professor signs the report and the university
 
 Everything runs locally with Ollama and an open weights model. Documents never leave the machine and nothing is stored.
 
+## Scope and responsibility
+
+- Tramo is a support tool, not a decision maker. Its output is a draft. It is not an opinion, an official report or an administrative act. The professor reviews and signs, and the university council resolves under the regulation in force.
+- AI transparency: the model reads the programs, extracts topics, labels each destination topic with the origin topics it cites, and drafts a recommendation. Code computes the coverage and applies the 50 percent rule. The model never calculates or decides, and every report names the model used.
+- Known limits: the model can miss a topic, misread a scope or cite a source badly, and two runs on the same programs can give slightly different percentages. It compares text only. It does not know practical work, bibliography or the real depth of each course, and it cannot read scanned PDFs without a text layer.
+- Copyright and data: study programs belong to their institutions and authors. Tramo uses them only for the analysis, processes them in memory, never stores or logs them and sends nothing to the internet. Load only documents you have the right to use. Reports quote short fragments of the loaded programs as evidence. The files in `samples/` are partly simulated and do not represent real study plans.
+- Disclaimer: the software is provided as is, under the MIT license, without warranty of any kind. Whoever uses it must review the result and is responsible for the decisions taken with it.
+- Independence: Tramo is an independent project. It does not belong to UNCA or to any faculty and it has no institutional endorsement.
+
+The same notice is shown in the interface, before the analysis starts, in the report and in a short section of the page.
+
 ## Security
 
 - Uploads accept only .pdf and .docx. The signature of the file is checked, not just the extension, and the size is capped before the file is stored.
