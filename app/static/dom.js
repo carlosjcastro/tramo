@@ -1,3 +1,5 @@
+export { reducedMotion } from "./motion.js";
+
 export const $ = (id) => document.getElementById(id);
 
 export const el = (tag, attrs = {}, ...children) => {
@@ -8,6 +10,3 @@ export const el = (tag, attrs = {}, ...children) => {
   node.append(...children);
   return node;
 };
-
-export const reducedMotion = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
